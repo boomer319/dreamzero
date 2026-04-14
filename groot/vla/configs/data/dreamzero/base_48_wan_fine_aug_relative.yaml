@@ -85,6 +85,84 @@ to_numpy_cfg: &to_numpy_cfg
   _target_: groot.vla.data.transform.VideoToNumpy
   apply_to: ???
 
+################################################################################
+# g1_dex3 (Unitree G1 upper body + Dex3 hands)
+################################################################################
+
+modality_config_g1_dex3:
+  video:
+    _target_: groot.vla.data.dataset.ModalityConfig
+    delta_indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+    eval_delta_indices: [0]
+    modality_keys:
+      - video.cam_left_high
+      - video.cam_right_high
+      - video.cam_left_wrist
+      - video.cam_right_wrist
+
+  state:
+    _target_: groot.vla.data.dataset.ModalityConfig
+    delta_indices: [0]
+    modality_keys:
+      - state.left_arm_pos
+      - state.right_arm_pos
+      - state.left_hand_pos
+      - state.right_hand_pos
+
+  action:
+    _target_: groot.vla.data.dataset.ModalityConfig
+    delta_indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+    modality_keys:
+      - action.left_arm_pos
+      - action.right_arm_pos
+      - action.left_hand_pos
+      - action.right_hand_pos
+
+transform_g1_dex3:
+  _target_: groot.vla.data.transform.ComposedModalityTransform
+  transforms:
+    # Video transforms
+    - <<: *totensor_cfg
+      apply_to: ${modality_config_g1_dex3.video.modality_keys}
+    - <<: *crop_cfg
+      apply_to: ${modality_config_g1_dex3.video.modality_keys}
+    - <<: *resize_cfg
+      apply_to: ${modality_config_g1_dex3.video.modality_keys}
+    - <<: *color_jitter_cfg
+      apply_to: ${modality_config_g1_dex3.video.modality_keys}
+    - <<: *to_numpy_cfg
+      apply_to: ${modality_config_g1_dex3.video.modality_keys}
+
+    # State transforms
+    - _target_: groot.vla.data.transform.StateActionToTensor
+      apply_to: ${modality_config_g1_dex3.state.modality_keys}
+    - _target_: groot.vla.data.transform.StateActionTransform
+      apply_to: ${modality_config_g1_dex3.state.modality_keys}
+      normalization_modes:
+        state.left_arm_pos: q99
+        state.right_arm_pos: q99
+        state.left_hand_pos: q99
+        state.right_hand_pos: q99
+
+    # Action transforms
+    - _target_: groot.vla.data.transform.StateActionToTensor
+      apply_to: ${modality_config_g1_dex3.action.modality_keys}
+    - _target_: groot.vla.data.transform.StateActionTransform
+      apply_to: ${modality_config_g1_dex3.action.modality_keys}
+      normalization_modes:
+        action.left_arm_pos: q99
+        action.right_arm_pos: q99
+        action.left_hand_pos: q99
+        action.right_hand_pos: q99
+
+    # ConcatTransform
+    - _target_: groot.vla.data.transform.ConcatTransform
+      video_concat_order: ${modality_config_g1_dex3.video.modality_keys}
+      state_concat_order: ${modality_config_g1_dex3.state.modality_keys}
+      action_concat_order: ${modality_config_g1_dex3.action.modality_keys}
+
+    # Model-specific transform
+    - ${model_specific_transform}
 
 ################################################################################
 # oxe_droid (OXE Droid)
@@ -347,6 +425,7 @@ transform_yam:
 ################################################################################
 
 modality_configs:
+  g1_dex3: ${modality_config_g1_dex3}
   oxe_droid: ${modality_config_oxe_droid}
   agibot: ${modality_config_agibot}
   yam: ${modality_config_yam}
@@ -356,6 +435,7 @@ modality_configs:
 ################################################################################
 
 transforms:
+  g1_dex3: ${transform_g1_dex3}
   oxe_droid: ${transform_oxe_droid}
   agibot: ${transform_agibot}
   yam: ${transform_yam}
@@ -365,6 +445,7 @@ transforms:
 ################################################################################
 
 metadata_versions:
+  g1_dex3: '0221'
   oxe_droid: '0221'
   agibot: '0221'
   yam: '0221'

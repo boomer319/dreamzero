@@ -197,6 +197,12 @@ class EmbodimentTag(Enum):
     The Unitree G1 dataset.
     """
 
+    UNITREE_G1_UPPER_BODY_DEX3 = "unitree_g1_upper_body_dex3"
+    """
+    The Unitree G1 upper body with Dex3 dexterous hands (bimanual, 28 DOF:
+    7 left arm + 7 right arm + 7 left Dex3 hand + 7 right Dex3 hand).
+    """
+
     UNITREE_G1_FULL_BODY = "unitree_g1_full_body"
     """
     The Unitree G1 dataset with full body.

@@ -65,6 +65,7 @@ VALID_EMBODIMENT_TAGS = [
     "dream", "yam", "xdof",
     "gr1_unified_segmentation", "language_table_sim", "gr1_isaac",
     "sim_behavior_r1_pro", "mecka_hands", "real_r1_pro_sharpa",
+    "unitree_g1_upper_body_dex3"
 ]
 
 
@@ -82,16 +83,35 @@ def load_info(dataset_path: Path) -> dict:
 
 
 def get_parquet_paths(dataset_path: Path, info: dict) -> list[Path]:
-    pattern = info.get("data_path", "data/chunk-{episode_chunk:03d}/episode_{episode_index:06d}.parquet")
-    total_episodes = info["total_episodes"]
+    pattern = info.get(
+        "data_path",
+        "data/chunk-{episode_chunk:03d}/episode_{episode_index:06d}.parquet",
+    )
+    total_episodes = info.get("total_episodes", 0)
     chunks_size = info.get("chunks_size", 1000)
-    paths = []
-    for ep_idx in range(total_episodes):
-        chunk_idx = ep_idx // chunks_size
-        p = dataset_path / pattern.format(episode_chunk=chunk_idx, episode_index=ep_idx)
-        if p.exists():
-            paths.append(p)
-    return sorted(paths)
+
+    data_dir = dataset_path / "data"
+
+    if "{episode_index" in pattern:
+        paths = []
+        for ep_idx in range(total_episodes):
+            chunk_idx = ep_idx // chunks_size
+            format_kwargs = {
+                "episode_index": ep_idx,
+                "episode_chunk": chunk_idx,
+                "chunk_index": chunk_idx,
+                "file_index": ep_idx,
+            }
+            try:
+                p = dataset_path / pattern.format(**format_kwargs)
+            except KeyError:
+                break
+            if p.exists():
+                paths.append(p)
+        if paths:
+            return sorted(paths)
+
+    return sorted(data_dir.rglob("*.parquet"))
 
 
 def detect_features(info: dict) -> dict:
