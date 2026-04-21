@@ -467,6 +467,6 @@ DATA_ROOT=/path/to/your_dataset OUTPUT_DIR=./checkpoints/run1 NUM_GPUS=4 \
 | `oxe_droid` | `droid_relative.yaml` | 3 cameras, joint_position + gripper_position |
 | `agibot` | `agibot_relative.yaml` | 3 cameras, 6 state keys, 7 action keys |
 | `yam` | `yam_relative.yaml` | 3 cameras (top/left/right), bimanual left/right joint_pos + gripper_pos |
-| `g1_dex3` | `g1_dex3_relative.yaml` | 4 cameras (stereo_top/left/right), bimanual left arm + right arm + left Dex3 hand + right Dex3 hand
+| `unitree_g1_upper_body_dex3` | `g1_dex3_relative.yaml` | 4 cameras (stereo_top/left/right), bimanual left arm + right arm + left Dex3 hand + right Dex3 hand
 
 Use these as concrete examples when building your own config.

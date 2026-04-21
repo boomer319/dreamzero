@@ -86,7 +86,7 @@ to_numpy_cfg: &to_numpy_cfg
   apply_to: ???
 
 ################################################################################
-# g1_dex3 (Unitree G1 upper body + Dex3 hands)
+# unitree_g1_upper_body_dex3 (Unitree G1 upper body + Dex3 hands)
 ################################################################################
 
 modality_config_g1_dex3:
@@ -425,7 +425,7 @@ transform_yam:
 ################################################################################
 
 modality_configs:
-  g1_dex3: ${modality_config_g1_dex3}
+  unitree_g1_upper_body_dex3: ${modality_config_g1_dex3}
   oxe_droid: ${modality_config_oxe_droid}
   agibot: ${modality_config_agibot}
   yam: ${modality_config_yam}
@@ -435,7 +435,7 @@ modality_configs:
 ################################################################################
 
 transforms:
-  g1_dex3: ${transform_g1_dex3}
+  unitree_g1_upper_body_dex3: ${transform_g1_dex3}
   oxe_droid: ${transform_oxe_droid}
   agibot: ${transform_agibot}
   yam: ${transform_yam}
@@ -445,7 +445,7 @@ transforms:
 ################################################################################
 
 metadata_versions:
-  g1_dex3: '0221'
+  unitree_g1_upper_body_dex3: '0221'
   oxe_droid: '0221'
   agibot: '0221'
   yam: '0221'

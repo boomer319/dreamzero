@@ -33,7 +33,7 @@ train_dataset:
   _convert_: object
   mixture_spec:
     - dataset_path:
-        g1_dex3:
+        unitree_g1_upper_body_dex3:
           - ${g1_dex3_data_root}
       dataset_weight: 1.0
       distribute_weights: true
