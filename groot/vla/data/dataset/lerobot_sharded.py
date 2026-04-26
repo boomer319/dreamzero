@@ -115,11 +115,11 @@ class ShardedLeRobotSingleDataset(LeRobotSingleDataset):
         for trajectory_id in trajectory_ids:
             sharded_trajectories[-1].append(trajectory_id)
             curr_num_steps += len(self.step_filter[trajectory_id])
-            while curr_shard_index < len(cutoffs) and curr_num_steps > cutoffs[curr_shard_index]:
+            if curr_num_steps > cutoffs[curr_shard_index]:
                 sharded_trajectories.append([])
+                curr_shard_index += 1
                 shard_lengths.append(curr_num_steps - last_num_steps)
                 last_num_steps = curr_num_steps
-                curr_shard_index += 1
         shard_lengths.append(curr_num_steps - last_num_steps)
         assert (
             curr_num_steps == total_steps
@@ -427,11 +427,11 @@ class ShardedLeRobotSubLangSingleActionChunkDatasetDROID(LeRobotSingleDataset):
         for trajectory_id in trajectory_ids:
             sharded_trajectories[-1].append(trajectory_id)
             curr_num_steps += len(self.step_filter[trajectory_id])
-            while curr_shard_index < len(cutoffs) and curr_num_steps > cutoffs[curr_shard_index]:
+            if curr_num_steps > cutoffs[curr_shard_index]:
                 sharded_trajectories.append([])
+                curr_shard_index += 1
                 shard_lengths.append(curr_num_steps - last_num_steps)
                 last_num_steps = curr_num_steps
-                curr_shard_index += 1
         shard_lengths.append(curr_num_steps - last_num_steps)
         assert (
             curr_num_steps == total_steps

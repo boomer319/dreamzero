@@ -622,9 +622,7 @@ class BaseExperiment(ABC):
             in the same wandb run. Otherwise, we create a new run."""
             if runtime_id:
                 os.environ["WANDB_RUN_ID"] = runtime_id
-        # Custom WANDB_DIR settable from env variable, otherwise default to training_args.output_dir
-        if "WANDB_DIR" not in os.environ:
-            os.environ["WANDB_DIR"] = training_args.output_dir
+        os.environ["WANDB_DIR"] = training_args.output_dir
 
         # Create the experiment config directory.
         output_dir = Path(training_args.output_dir)
