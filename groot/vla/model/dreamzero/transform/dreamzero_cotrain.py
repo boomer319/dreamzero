@@ -99,7 +99,10 @@ def collate(features: List[dict], tokenizer: AutoTokenizer, num_views=3, embodim
             for elem in features:
                 item = elem[key]
                 try:
-                    parsed_item = ast.literal_eval(item)
+                    try:
+                        parsed_item = ast.literal_eval(item)
+                    except (SyntaxError, ValueError):
+                        parsed_item = [item]  # If it's just a raw string, wrap it in a list
                     # Handle different return types from ast.literal_eval
                     if isinstance(parsed_item, (list, tuple)):
                         processed_item = str(parsed_item[0])
@@ -124,6 +127,8 @@ def collate(features: List[dict], tokenizer: AutoTokenizer, num_views=3, embodim
                         processed_item = "A multi-view video shows that a robot " + processed_item.lower() + " The video is split into four views: The top-left view shows the camera view from the robot's head, the top-right view shows the camera view from the right hand, the bottom-left view shows the camera view from the left hand, and the bottom-right view is a black screen (inactive view). The robot " + processed_item.lower()
                     elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.YAM.value]:
                         processed_item = "A multi-view video shows that a robot " + processed_item.lower() + " The video is split into four views: The top-left view shows the top camera, the top-right view shows the right camera, the bottom-left view shows the left camera, and the bottom-right view is a black screen. The robot " + processed_item.lower()
+                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.UNITREE_G1_UPPER_BODY_DEX3.value]:
+                        processed_item = "A multi-view video shows that a robot " + processed_item.lower() + " The video is split into four views: The top-left view shows the left stereo camera, the top-right view shows the right stereo camera, the bottom-left view shows the left hand camera, and the bottom-right view shows the right hand camera. The robot " + processed_item.lower()
                     else:
                         raise ValueError(f"Embodiment ID {elem['embodiment_id']} not supported.") 
                     output_values.append(processed_item)  
@@ -146,6 +151,8 @@ def collate(features: List[dict], tokenizer: AutoTokenizer, num_views=3, embodim
                         item = "A multi-view video shows that a robot " + str(item).lower() + " The video is split into four views: The top-left view shows the camera view from the robot's head, the top-right view shows the camera view from the right hand, the bottom-left view shows the camera view from the left hand, and the bottom-right view is a black screen (inactive view). The robot " + str(item).lower()
                     elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.YAM.value]:
                         item = "A multi-view video shows that a robot " + str(item).lower() + " The video is split into four views: The top-left view shows the top camera, the top-right view shows the right camera, the bottom-left view shows the left camera, and the bottom-right view is a black screen. The robot " + str(item).lower()
+                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.UNITREE_G1_UPPER_BODY_DEX3.value]:
+                        item = "A multi-view video shows that a robot " + str(item).lower() + " The video is split into four views: The top-left view shows the left stereo camera, the top-right view shows the right stereo camera, the bottom-left view shows the left hand camera, and the bottom-right view shows the right hand camera. The robot " + str(item).lower()
                     else:
                         raise ValueError(f"Embodiment ID {elem['embodiment_id']} not supported.")   
                     output_values.append(item)
@@ -353,6 +360,37 @@ class DreamTransform(InvertibleModalityTransform):
                 concat_images[0, :, :, h:, w:] = right_exterior
 
                 return concat_images
+
+            if self.embodiment_tag == EmbodimentTag.UNITREE_G1_UPPER_BODY_DEX3 and v >= 4:
+                concat_images = np.zeros((1, t, c, 2*h, 2*w), dtype=images.dtype)
+                
+                # Assign to quadrants
+                concat_images[0, :, :, :h, :w] = images[0]  # Top-Left Quadrant
+                concat_images[0, :, :, :h, w:] = images[1]  # Top-Right Quadrant
+                concat_images[0, :, :, h:, :w] = images[2]  # Bottom-Left Quadrant
+                concat_images[0, :, :, h:, w:] = images[3]  # Bottom-Right Quadrant
+                
+                # --- HOW TO LOOK AT THE QUADRANTS (DEBUG VISUALIZATION) ---
+                if not hasattr(self, "_saved_debug_img"):
+                    from PIL import Image
+                    # Extract the very first frame (t=0) of the constructed 2x2 video
+                    # shape goes from [1, T, C, 2H, 2W] -> [C, 2H, 2W]
+                    frame_c_h_w = concat_images[0, 0] 
+                    
+                    # Convert format from [C, H, W] to [H, W, C] for saving as an image
+                    frame_h_w_c = np.transpose(frame_c_h_w, (1, 2, 0))
+                    
+                    # Save it as a JPEG
+                    img = Image.fromarray(frame_h_w_c.astype(np.uint8))
+                    img.save("debug_quadrant_layout.jpg")
+                    print("\n" + "="*50)
+                    print("DEBUG: Saved a snapshot of the 4 cameras to 'debug_quadrant_layout.jpg'")
+                    print("="*50 + "\n")
+                    self._saved_debug_img = True
+                # ----------------------------------------------------------
+                
+                return concat_images
+
             
             # For other embodiments: use 2x2 grid layout
             # Layout: [head, right]
@@ -627,4 +665,3 @@ class DreamTransform(InvertibleModalityTransform):
 
     def __call__(self, data: dict) -> dict:
         return self.apply(data)
-

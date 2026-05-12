@@ -21,7 +21,7 @@ max_chunk_size: 5
 dataset_shard_sampling_rate: 0.1
 
 mixture_dataset_cls: groot.vla.data.dataset.lerobot_sharded.ShardedLeRobotMixtureDataset.from_mixture_spec
-single_dataset_cls: groot.vla.data.dataset.lerobot_sharded.ShardedLeRobotSubLangSingleActionChunkDatasetDROID
+single_dataset_cls: groot.vla.data.dataset.lerobot_sharded.ShardedLeRobotSingleDataset
 
 # Set your G1 Dex3 dataset path here or override via CLI:
 #   g1_dex3_data_root=/path/to/your/g1_dex3_dataset

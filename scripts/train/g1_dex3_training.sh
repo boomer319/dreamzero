@@ -39,13 +39,13 @@ torchrun --nproc_per_node $NUM_GPUS --standalone groot/vla/experiment/experiment
     data=dreamzero/g1_dex3_relative \
     wandb_project=dreamzero \
     train_architecture=lora \
-    num_frames=33 \
+    num_frames=25 \
     action_horizon=24 \
     num_views=4 \
     model=dreamzero/vla \
     model/dreamzero/action_head=wan_flow_matching_action_tf \
     model/dreamzero/transform=dreamzero_cotrain \
-    num_frame_per_block=2 \
+    num_frame_per_block=6 \
     num_action_per_block=24 \
     num_state_per_block=1 \
     seed=42 \
@@ -55,6 +55,7 @@ torchrun --nproc_per_node $NUM_GPUS --standalone groot/vla/experiment/experiment
     training_args.warmup_ratio=0.05 \
     output_dir=$OUTPUT_DIR \
     per_device_train_batch_size=1 \
+    global_batch_size=${NUM_GPUS}\
     max_steps=5000 \
     weight_decay=1e-5 \
     save_total_limit=10 \
@@ -64,8 +65,8 @@ torchrun --nproc_per_node $NUM_GPUS --standalone groot/vla/experiment/experiment
     eval_bf16=true \
     dataloader_pin_memory=false \
     dataloader_num_workers=1 \
-    image_resolution_width=256 \
-    image_resolution_height=192 \
+    image_resolution_width=320 \
+    image_resolution_height=176 \
     save_lora_only=true \
     max_chunk_size=4 \
     frame_seqlen=880 \
