@@ -212,6 +212,7 @@ class DreamTransform(InvertibleModalityTransform):
     # Private attributes to keep track of shapes/dimensions across apply/unapply
     _language_key: Optional[str] = PrivateAttr(default=None)
     _language_keys: Optional[list[str]] = PrivateAttr(default=None)
+    _saved_debug_img: bool = PrivateAttr(default=False)
 
     # XEmbDiT arguments
     default_instruction: str
@@ -222,6 +223,8 @@ class DreamTransform(InvertibleModalityTransform):
     state_horizon: int
     action_horizon: int
     num_views: int = 3
+    image_resolution_width: int = 256
+    image_resolution_height: int = 192
 
     # Add tokenizer attribute
     tokenizer_path: str = Field(
@@ -362,32 +365,54 @@ class DreamTransform(InvertibleModalityTransform):
                 return concat_images
 
             if self.embodiment_tag == EmbodimentTag.UNITREE_G1_UPPER_BODY_DEX3 and v >= 4:
-                concat_images = np.zeros((1, t, c, 2*h, 2*w), dtype=images.dtype)
+                target_ratio = self.image_resolution_width / self.image_resolution_height
+                current_ratio = w / h
                 
-                # Assign to quadrants
-                concat_images[0, :, :, :h, :w] = images[0]  # Top-Left Quadrant
-                concat_images[0, :, :, :h, w:] = images[1]  # Top-Right Quadrant
-                concat_images[0, :, :, h:, :w] = images[2]  # Bottom-Left Quadrant
-                concat_images[0, :, :, h:, w:] = images[3]  # Bottom-Right Quadrant
-                
-                # --- HOW TO LOOK AT THE QUADRANTS (DEBUG VISUALIZATION) ---
-                if not hasattr(self, "_saved_debug_img"):
+                if current_ratio < target_ratio:
+                    # Case 1: Image is too "square" (Pillarbox - Side Padding)
+                    new_w = int(h * target_ratio)
+                    pad_w = (new_w - w) // 2
+                    concat_images = np.zeros((1, t, c, 2 * h, 2 * new_w), dtype=images.dtype)
+                    
+                    # Offsets for quadrants in a 2x2 grid
+                    # Top-Left: [0, 0], Top-Right: [0, new_w], Bottom-Left: [h, 0], Bottom-Right: [h, new_w]
+                    concat_images[0, :, :, :h, pad_w : pad_w + w] = images[0]
+                    concat_images[0, :, :, :h, new_w + pad_w : new_w + pad_w + w] = images[1]
+                    concat_images[0, :, :, h:, pad_w : pad_w + w] = images[2]
+                    concat_images[0, :, :, h:, new_w + pad_w : new_w + pad_w + w] = images[3]
+
+                elif current_ratio > target_ratio:
+                    # Case 2: Image is too "wide" (Letterbox - Top/Bottom Padding)
+                    new_h = int(w / target_ratio)
+                    pad_h = (new_h - h) // 2
+                    concat_images = np.zeros((1, t, c, 2 * new_h, 2 * w), dtype=images.dtype)
+                    
+                    # Top-Left
+                    concat_images[0, :, :, pad_h : pad_h + h, :w] = images[0]
+                    # Top-Right
+                    concat_images[0, :, :, pad_h : pad_h + h, w:] = images[1]
+                    # Bottom-Left
+                    concat_images[0, :, :, new_h + pad_h : new_h + pad_h + h, :w] = images[2]
+                    # Bottom-Right
+                    concat_images[0, :, :, new_h + pad_h : new_h + pad_h + h, w:] = images[3]
+                    
+                else:
+                    # Case 3: Perfect match, no padding needed
+                    concat_images = np.zeros((1, t, c, 2*h, 2*w), dtype=images.dtype)
+                    concat_images[0, :, :, :h, :w] = images[0]
+                    concat_images[0, :, :, :h, w:] = images[1]
+                    concat_images[0, :, :, h:, :w] = images[2]
+                    concat_images[0, :, :, h:, w:] = images[3]
+
+                # --- DEBUG VISUALIZATION ---
+                if not self._saved_debug_img:
                     from PIL import Image
-                    # Extract the very first frame (t=0) of the constructed 2x2 video
-                    # shape goes from [1, T, C, 2H, 2W] -> [C, 2H, 2W]
                     frame_c_h_w = concat_images[0, 0] 
-                    
-                    # Convert format from [C, H, W] to [H, W, C] for saving as an image
                     frame_h_w_c = np.transpose(frame_c_h_w, (1, 2, 0))
-                    
-                    # Save it as a JPEG
                     img = Image.fromarray(frame_h_w_c.astype(np.uint8))
-                    img.save("debug_quadrant_layout.jpg")
-                    print("\n" + "="*50)
-                    print("DEBUG: Saved a snapshot of the 4 cameras to 'debug_quadrant_layout.jpg'")
-                    print("="*50 + "\n")
+                    img.save("debug_quadrant_padded.jpg")
+                    print(f"\nDEBUG: Saved padded layout to 'debug_quadrant_padded.jpg'. Target Ratio: {target_ratio:.3f}\n")
                     self._saved_debug_img = True
-                # ----------------------------------------------------------
                 
                 return concat_images
 
