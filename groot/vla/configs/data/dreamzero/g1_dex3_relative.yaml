@@ -4,8 +4,8 @@ defaults:
   - dreamzero/base_48_wan_fine_aug_relative
   - _self_
 
-image_resolution_width: 256
-image_resolution_height: 192
+image_resolution_width: 640
+image_resolution_height: 480
 
 max_state_dim: 64
 use_global_metadata: false
