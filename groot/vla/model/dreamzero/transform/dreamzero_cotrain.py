@@ -212,6 +212,7 @@ class DreamTransform(InvertibleModalityTransform):
     # Private attributes to keep track of shapes/dimensions across apply/unapply
     _language_key: Optional[str] = PrivateAttr(default=None)
     _language_keys: Optional[list[str]] = PrivateAttr(default=None)
+    _saved_debug_img: bool = PrivateAttr(default=False)
 
     # XEmbDiT arguments
     default_instruction: str
@@ -371,7 +372,7 @@ class DreamTransform(InvertibleModalityTransform):
                 concat_images[0, :, :, h:, w:] = images[3]  # Bottom-Right Quadrant
                 
                 # --- HOW TO LOOK AT THE QUADRANTS (DEBUG VISUALIZATION) ---
-                if not hasattr(self, "_saved_debug_img"):
+                if not self._saved_debug_img:
                     from PIL import Image
                     # Extract the very first frame (t=0) of the constructed 2x2 video
                     # shape goes from [1, T, C, 2H, 2W] -> [C, 2H, 2W]
