@@ -33,6 +33,8 @@ class Args:
     enable_dit_cache: bool = False
     index: int = 0
     max_chunk_size: int | None = None
+    transport: str = "zmq"
+    zmq_port: int = 5550
 
 
 class G1Dex3Server:
@@ -259,6 +261,62 @@ class WebsocketPolicyServer:
             logger.info("Client session ended")
 
 
+class ZmqPolicyServer:
+    def __init__(
+        self,
+        policy: G1Dex3Server,
+        host: str = "0.0.0.0",
+        port: int | None = None,
+        metadata: dict | None = None,
+        output_dir: str | None = None,
+    ) -> None:
+        import zmq
+
+        self._policy = policy
+        self._host = host
+        self._port = port
+        self._metadata = metadata or {}
+        self._output_dir = output_dir
+        if self._output_dir:
+            os.makedirs(self._output_dir, exist_ok=True)
+
+        self._zmq = zmq
+        self._ctx = zmq.Context.instance()
+        self._sock = self._ctx.socket(zmq.REP)
+        self._sock.setsockopt(zmq.LINGER, 0)
+        self._sock.bind(f"tcp://{host}:{port}")
+        self._packer = msgpack_numpy.Packer()
+
+    def serve_forever(self):
+        logger.info(f"ZMQ REP server listening on tcp://{self._host}:{self._port}")
+        while True:
+            try:
+                start_time = time.perf_counter()
+                data = self._sock.recv()
+                msg = msgpack_numpy.unpackb(data)
+                logger.info(f"Request received after {time.perf_counter() - start_time:.2f}s wait")
+
+                endpoint = msg.get("endpoint", "infer") if isinstance(msg, dict) else "infer"
+                msg.pop("endpoint", None)
+
+                if endpoint == "metadata":
+                    self._sock.send(self._packer.pack(self._metadata))
+                    continue
+
+                self._policy._msg_index += 1
+                action_chunk = self._policy.infer(msg)
+                self._sock.send(self._packer.pack(action_chunk))
+
+            except Exception:
+                error = traceback.format_exc()
+                logger.error(error)
+                try:
+                    self._sock.send(self._packer.pack({"error": error}))
+                except Exception:
+                    logger.warning("Failed to send error reply; dropping request and waiting for next")
+                    continue
+
+
 def init_mesh() -> DeviceMesh:
     if "RANK" not in os.environ:
         os.environ.setdefault("MASTER_ADDR", "localhost")
@@ -350,13 +408,22 @@ def main(args: Args) -> None:
     )
 
     if rank == 0:
-        server = WebsocketPolicyServer(
-            policy=wrapper_policy,
-            host="0.0.0.0",
-            port=args.port,
-            metadata=policy_metadata,
-            output_dir=output_dir,
-        )
+        if args.transport == "zmq":
+            server = ZmqPolicyServer(
+                policy=wrapper_policy,
+                host="0.0.0.0",
+                port=args.zmq_port,
+                metadata=policy_metadata,
+                output_dir=output_dir,
+            )
+        else:
+            server = WebsocketPolicyServer(
+                policy=wrapper_policy,
+                host="0.0.0.0",
+                port=args.port,
+                metadata=policy_metadata,
+                output_dir=output_dir,
+            )
         server.serve_forever()
     else:
         signal_tensor = torch.zeros(1, dtype=torch.int32, device='cpu')
