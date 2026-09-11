@@ -1,9 +1,13 @@
+import os
+
 import numpy as np
 import websockets.sync.client
 from openpi_client import msgpack_numpy
 
 packer = msgpack_numpy.Packer()
-uri = "ws://172.22.0.3:8000"
+host = os.environ.get("DREAMZERO_HOST", "127.0.0.1")
+port = os.environ.get("DREAMZERO_PORT", "8000")
+uri = f"ws://{host}:{port}"
 
 with websockets.sync.client.connect(uri, compression=None, max_size=None) as ws:
     metadata = msgpack_numpy.unpackb(ws.recv())
