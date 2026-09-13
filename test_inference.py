@@ -55,4 +55,15 @@ for k in action_keys:
     print(f"  {k}: shape={v.shape} dtype={v.dtype}")
 
 print(f"Inference OK in {latency:.2f}s; {len(action_keys)} action key(s), horizon 24")
+
+sock.send(packer.pack({"endpoint": "save_video"}))
+save_response = msgpack_numpy.unpackb(sock.recv())
+print("Save video response:", save_response)
+if save_response.get("status") != "saved" or not save_response.get("path"):
+    raise SystemExit(f"video was not saved: {save_response}")
+
+sock.send(packer.pack({"endpoint": "reset"}))
+reset_response = msgpack_numpy.unpackb(sock.recv())
+print("Reset response:", reset_response)
+
 sock.close(linger=0)

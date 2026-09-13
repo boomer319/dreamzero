@@ -160,7 +160,8 @@ class G1Dex3Server:
 
     def _save_video(self):
         if len(self.video_across_time) <= 0:
-            return
+            return None
+        output_path = None
         try:
             frame_list = []
             video_across_time_cat = torch.cat(self.video_across_time, dim=2)
@@ -188,6 +189,8 @@ class G1Dex3Server:
                     logger.info(f"Saved video to: {output_path}")
         except Exception as e:
             logger.warning(f"Failed to save video: {e}")
+            return None
+        return output_path
 
 
 class WebsocketPolicyServer:
@@ -301,6 +304,19 @@ class ZmqPolicyServer:
 
                 if endpoint == "metadata":
                     self._sock.send(self._packer.pack(self._metadata))
+                    continue
+
+                if endpoint == "save_video":
+                    video_path = self._policy._save_video()
+                    self._sock.send(self._packer.pack({
+                        "status": "saved" if video_path else "empty",
+                        "path": video_path,
+                    }))
+                    continue
+
+                if endpoint == "reset":
+                    self._policy.reset()
+                    self._sock.send(self._packer.pack({"status": "reset"}))
                     continue
 
                 self._policy._msg_index += 1
