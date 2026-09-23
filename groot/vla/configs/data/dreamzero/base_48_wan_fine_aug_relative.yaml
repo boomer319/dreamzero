@@ -118,6 +118,12 @@ modality_config_g1_dex3:
       - action.left_hand_pos
       - action.right_hand_pos
 
+  language:
+    _target_: groot.vla.data.dataset.ModalityConfig
+    delta_indices: [0]
+    modality_keys:
+      - annotation.task
+
 transform_g1_dex3:
   _target_: groot.vla.data.transform.ComposedModalityTransform
   transforms:
