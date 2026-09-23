@@ -17,7 +17,7 @@ relative_action_keys:
   - left_hand_pos
   - right_hand_pos
 
-max_chunk_size: 5
+max_chunk_size: 4
 dataset_shard_sampling_rate: 0.1
 
 mixture_dataset_cls: groot.vla.data.dataset.lerobot_sharded.ShardedLeRobotMixtureDataset.from_mixture_spec
