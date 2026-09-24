@@ -39,8 +39,9 @@ torchrun --nproc_per_node $NUM_GPUS --standalone groot/vla/experiment/experiment
     data=dreamzero/g1_dex3_relative \
     wandb_project=dreamzero \
     train_architecture=lora \
-    num_frames=33 \
+    num_frames=9 \
     action_horizon=48 \
+    state_horizon=1 \
     num_views=3 \
     model=dreamzero/vla \
     model/dreamzero/action_head=wan_flow_matching_action_tf \
@@ -49,7 +50,7 @@ torchrun --nproc_per_node $NUM_GPUS --standalone groot/vla/experiment/experiment
     num_action_per_block=48 \
     num_state_per_block=1 \
     seed=42 \
-    training_args.learning_rate=1e-5 \
+    training_args.learning_rate=${LEARNING_RATE:-1e-5} \
     training_args.deepspeed="groot/vla/configs/deepspeed/zero2.json" \
     save_steps=${SAVE_STEPS:-500} \
     training_args.warmup_ratio=0.05 \
@@ -70,7 +71,10 @@ torchrun --nproc_per_node $NUM_GPUS --standalone groot/vla/experiment/experiment
     max_chunk_size=4 \
     frame_seqlen=880 \
     save_strategy=steps \
+    dataset_shard_sampling_rate=${DATASET_SHARD_SAMPLING_RATE:-0.1} \
     g1_dex3_data_root=$G1_DEX3_DATA_ROOT \
+    modality_config_g1_dex3.video.delta_indices=[0,1,2,3,4,5,6,7,8] \
+    modality_config_g1_dex3.state.delta_indices=[0] \
     dit_version=$WAN_CKPT_DIR \
     text_encoder_pretrained_path=$WAN_CKPT_DIR/models_t5_umt5-xxl-enc-bf16.pth \
     image_encoder_pretrained_path=$WAN_CKPT_DIR/models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth \
