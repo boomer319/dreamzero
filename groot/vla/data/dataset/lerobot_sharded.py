@@ -1048,7 +1048,7 @@ class ShardedLeRobotSubLangSingleActionChunkDatasetDROID(LeRobotSingleDataset):
                 action_key=key,
                 sampled_indices=sampled_indices,
                 trajectory_id=trajectory_id,
-                chunk_size=24,
+                chunk_size=len(sampled_indices),
             )
             # print("action data after convert", action_data[0], action_data[-1], key)
         
