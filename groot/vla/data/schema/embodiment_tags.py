@@ -247,6 +247,14 @@ class EmbodimentTag(Enum):
     The Unitree G1 dataset with full body and waist and height command and navigate command and task progress.
     """
 
+    G1_SONIC = "g1_sonic"
+    """
+    The Unitree G1 whole-body SONIC embodiment (liang12121 g1-sonic checkpoint):
+    43-D state (legs 12 + waist 3 + arms 14 + hands 14), 78-D action
+    (hand_joints 14 + motion_token 64), single ego camera, 33 frames,
+    action_horizon 24.
+    """
+
     UNITREE_G1_FULL_BODY_WITH_HEIGHT_NAV_CMD_IN_SIM = (
         "unitree_g1_full_body_with_height_nav_cmd_in_sim"
     )
