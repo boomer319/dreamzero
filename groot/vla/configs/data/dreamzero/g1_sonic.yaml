@@ -1,0 +1,59 @@
+# @package _global_
+
+defaults:
+  - dreamzero/base_48_wan_fine_aug_relative
+  - _self_
+
+# g1_sonic (Unitree G1 whole-body SONIC + Dex3 hands, liang12121 checkpoint)
+# Single ego view, 320x176 full-bleed, 33 frames, action_horizon 24,
+# 43-D state (qpos 29 + hand 14), 78-D action (hand_joints 14 + token 64).
+# ABSOLUTE actions (relative_action=false).
+
+image_resolution_width: 320
+image_resolution_height: 176
+
+max_state_dim: 43
+max_action_dim: 78
+use_global_metadata: false
+relative_action: false
+relative_action_per_horizon: false
+relative_action_keys: []
+
+max_chunk_size: 4
+dataset_shard_sampling_rate: 1.0
+
+mixture_dataset_cls: groot.vla.data.dataset.lerobot_sharded.ShardedLeRobotMixtureDataset.from_mixture_spec
+single_dataset_cls: groot.vla.data.dataset.lerobot_sharded.ShardedLeRobotSingleDataset
+
+# Set your g1_sonic (GEAR, grouped-layout) dataset path here or override via CLI:
+#   g1_sonic_data_root=/path/to/your/g1_sonic_dataset
+
+g1_sonic_data_root: ???
+
+train_dataset:
+  _target_: ${mixture_dataset_cls}
+  _convert_: object
+  mixture_spec:
+    - dataset_path:
+        g1_sonic:
+          - ${g1_sonic_data_root}
+      dataset_weight: 1.0
+      distribute_weights: true
+
+  dataset_class: ${single_dataset_cls}
+  all_modality_configs: ${modality_configs}
+  all_transforms: ${transforms}
+  metadata_versions: ${metadata_versions}
+  fps: ${fps}
+  dataset_kwargs:
+    video_backend: decord
+    use_global_metadata: ${use_global_metadata}
+    max_chunk_size: ${max_chunk_size}
+    relative_action: ${relative_action}
+    relative_action_keys: ${relative_action_keys}
+    relative_action_per_horizon: ${relative_action_per_horizon}
+  mixture_kwargs:
+    training: true
+    balance_dataset_weights: false
+    seed: 42
+    shard_sampling_rate: ${dataset_shard_sampling_rate}

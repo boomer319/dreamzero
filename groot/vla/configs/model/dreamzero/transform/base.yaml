@@ -41,3 +41,11 @@ embodiment_tag_to_projector_index:
   mecka_hands: 27
   real_r1_pro_sharpa: 28
   unitree_g1_upper_body_dex3: 29
+  real_teleop_g1: 33
+  g1_head_single: 33
+  g1_sonic: 34
+  dream_pretrain: 35
+  dream_pretrain_egodex: 35
+  dream_pretrain_egoverse: 35
+  dream_pretrain_egoverse_360: 35
+  dream_pretrain_egoverse_480: 35

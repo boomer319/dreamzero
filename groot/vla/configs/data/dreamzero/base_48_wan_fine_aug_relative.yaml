@@ -505,6 +505,7 @@ modality_configs:
   oxe_droid: ${modality_config_oxe_droid}
   agibot: ${modality_config_agibot}
   yam: ${modality_config_yam}
+  g1_sonic: ${modality_config_g1_sonic}
 
 ################################################################################
 # Transforms
@@ -515,6 +516,7 @@ transforms:
   oxe_droid: ${transform_oxe_droid}
   agibot: ${transform_agibot}
   yam: ${transform_yam}
+  g1_sonic: ${transform_g1_sonic}
 
 ################################################################################
 # Metadata Versions
@@ -525,6 +527,7 @@ metadata_versions:
   oxe_droid: '0221'
   agibot: '0221'
   yam: '0221'
+  g1_sonic: '0221'
 
 ################################################################################
 # FPS (per embodiment, null means use dataset default)
@@ -532,3 +535,4 @@ metadata_versions:
 
 fps:
   yam: 30
+  g1_sonic: 30
