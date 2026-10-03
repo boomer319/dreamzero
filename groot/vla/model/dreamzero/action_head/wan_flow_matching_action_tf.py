@@ -1066,6 +1066,39 @@ class WANPolicyHead(ActionHead):
             clip_feas, ys, image = self.encode_image(image, self.num_frames, height, width)
             self.clip_feas = clip_feas.to(dtype=image.dtype)
             self.ys = ys.to(dtype=image.dtype)
+
+        # --- teacher forcing (opt-in, 2026-10-04) ---
+        # `self.ys` holds the frozen-VAE latents of the frames the client sent. Replacing
+        # them with caller-supplied GT latents makes the action branch denoise against the
+        # TRUE future video, i.e. exactly the training condition. Default (None) is a no-op.
+        if latent_video is not None:
+            _tf = latent_video.to(device=self.ys.device, dtype=self.ys.dtype)
+            # self.ys layout is concat([msk(4ch), vae_latents(16ch)]) -> 20ch (see
+            # encode_image). If the caller passed raw 16ch VAE latents, rebuild the mask
+            # prefix so the DiT still sees 20 video channels (20+16 action = 36).
+            if _tf.shape[1] != self.ys.shape[1]:
+                _b, _c, _t, _h, _w = _tf.shape
+                _msk = torch.zeros(_b, self.ys.shape[1] - _c, _t, _h, _w,
+                                   dtype=_tf.dtype, device=_tf.device)
+                _msk[:, :, 0:1, :, :] = 1
+                _tf = torch.concat([_msk, _tf], dim=1)
+            print(f"[TF] ys {tuple(self.ys.shape)} -> GT {tuple(_tf.shape)}"
+                  f" (current_start_frame kept at {self.current_start_frame})")
+            self.ys = _tf
+            # CONTROL VARIANT: do NOT advance current_start_frame. Advancing it perturbs
+            # KV-cache metadata + block indexing, which could itself explain the T6 result.
+
+        # --- teacher forcing (opt-in, 2026-10-04) ---
+        # Replace the clean video conditioning with caller-supplied GT latents so the
+        # action head sees exactly the training condition (full GT block, not 1 frame).
+        _tf_gt = getattr(self, "_tf_gt_latents", None)
+        if getattr(self, "_tf_enabled", False) and _tf_gt is not None:
+            _tf_gt = _tf_gt.to(device=self.ys.device, dtype=self.ys.dtype)
+            if _tf_gt.shape[2] != self.ys.shape[2]:
+                print(f"[TF] REPLACING ys latents {tuple(self.ys.shape)} -> {tuple(_tf_gt.shape)}")
+            self.ys = _tf_gt
+            self.current_start_frame = max(self.current_start_frame, self.ys.shape[2])
+            print(f"[TF] teacher forcing ON: ys={tuple(self.ys.shape)}")
         
         assert self.clip_feas is not None and self.ys is not None, "clip_feas and ys must be set"
 

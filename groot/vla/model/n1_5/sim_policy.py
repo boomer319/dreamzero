@@ -715,6 +715,9 @@ class GrootSimPolicy(BaseGrootSimPolicy):
         # 3. Model inference
         with torch.inference_mode():
             # with maybe_autocast:
+            if latent_video is not None:
+                print(f"[TF] sim_policy.lazy_joint_forward_causal: routing GT latents "
+                      f"{tuple(latent_video.shape)} via latent_video")
             model_pred = self.trained_model.lazy_joint_video_action_causal(normalized_input, latent_video=latent_video)
         normalized_action = model_pred["action_pred"].float()
         video_pred = model_pred["video_pred"]
