@@ -255,6 +255,15 @@ class EmbodimentTag(Enum):
     action_horizon 24.
     """
 
+    G1_SONIC_Neck = "g1_sonic_neck"
+    """
+    The Unitree G1 whole-body SONIC embodiment with an extra 2-D neck
+    (liang12121 throw_trash_wan checkpoint): 45-D state
+    (qpos 29 + hand_joints 14 + neck 2), 80-D action
+    (hand_joints 14 + neck 2 + token 64), single ego camera, 33 frames,
+    action_horizon 24.
+    """
+
     UNITREE_G1_FULL_BODY_WITH_HEIGHT_NAV_CMD_IN_SIM = (
         "unitree_g1_full_body_with_height_nav_cmd_in_sim"
     )

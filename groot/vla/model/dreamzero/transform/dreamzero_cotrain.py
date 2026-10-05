@@ -110,48 +110,56 @@ def collate(features: List[dict], tokenizer: AutoTokenizer, num_views=3, embodim
                         # If it's already a scalar (string, float, int, etc.), convert to string
                         processed_item = str(parsed_item)
                     
-                    if num_views > 1 and elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.AGIBOT.value]:
+                    if num_views > 1 and elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.AGIBOT.value):
                         processed_item = "A multi-view video shows that a robot " + processed_item.lower() + " The video is split into four views: The top-left view shows the camera view from the robot's head, the top-right view shows the camera view from the right hand, the bottom-left view shows the camera view from the left hand, and the bottom-right view is a black screen (inactive view). The robot " + processed_item.lower()
-                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.OXE_DROID.value]:
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.OXE_DROID.value):
                         processed_item = (
                             "A multi-view video shows that a robot "
                             + processed_item.lower()
                             + " The video is split into three views: The top view shows the camera view from the robot's wrist, the bottom-left view shows the camera view from the left exterior camera, and the bottom-right view shows the camera view from the right exterior camera. During training, one of the two bottom exterior views may be a black screen (dropped view). The robot "
                             + processed_item.lower()
                         )
-                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.GR1_UNIFIED.value]:
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.GR1_UNIFIED.value):
                         processed_item = "A single view video shows that a human " + processed_item.lower()
-                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.MECKA_HANDS.value]:
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.MECKA_HANDS.value):
                         processed_item = "A single view video shows that a human " + processed_item.lower()
-                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.XDOF.value]:
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.XDOF.value):
                         processed_item = "A multi-view video shows that a robot " + processed_item.lower() + " The video is split into four views: The top-left view shows the camera view from the robot's head, the top-right view shows the camera view from the right hand, the bottom-left view shows the camera view from the left hand, and the bottom-right view is a black screen (inactive view). The robot " + processed_item.lower()
-                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.YAM.value]:
-                        processed_item = "A multi-view video shows that a robot " + processed_item.lower() + " The video is split into four views: The top-left view shows the top camera, the top-right view shows the right camera, the bottom-left view shows the left camera, and the bottom-right view is a black screen. The robot " + processed_item.lower()
-                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.UNITREE_G1_UPPER_BODY_DEX3.value]:
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.YAM.value):
+                        processed_item = "A multi-view video shows that a robot " + processed_item.lower() + " The video is split into four views: The top-left view shows the camera view from the robot's head, the top-right view shows the camera view from the right hand, the bottom-left view shows the camera view from the left hand, and the bottom-right view is a black screen. The robot " + processed_item.lower()
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.G1_SONIC.value):
+                        processed_item = "A single view video shows that a robot " + processed_item.lower()
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.G1_SONIC_Neck.value):
+                        processed_item = "A single view video shows that a robot " + processed_item.lower()
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.UNITREE_G1_UPPER_BODY_DEX3.value):
                         processed_item = "A multi-view video shows that a robot " + processed_item.lower() + " The video is split into four views: The top-left view shows the camera view from the robot's head, the top-right view shows the camera view from the right hand, the bottom-left view shows the camera view from the left hand, and the bottom-right view is a black screen (inactive view). The robot " + processed_item.lower()
                     else:
                         raise ValueError(f"Embodiment ID {elem['embodiment_id']} not supported.") 
                     output_values.append(processed_item)  
                 except (ValueError, SyntaxError, TypeError):
                     # If parsing fails or item is already a string, use it directly
-                    if num_views > 1 and elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.AGIBOT.value]:
+                    if num_views > 1 and elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.AGIBOT.value):
                         item = "A multi-view video shows that a robot " + str(item).lower() + " The video is split into four views: The top-left view shows the camera view from the robot's head, the top-right view shows the camera view from the right hand, the bottom-left view shows the camera view from the left hand, and the bottom-right view is a black screen (inactive view). The robot " + str(item).lower()
-                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.OXE_DROID.value]:
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.OXE_DROID.value):
                         item = (
                             "A multi-view video shows that a robot "
                             + str(item).lower()
                             + " The video is split into three views: The top view shows the camera view from the robot's wrist, the bottom-left view shows the camera view from the left exterior camera, and the bottom-right view shows the camera view from the right exterior camera. During training, one of the two bottom exterior views may be a black screen (dropped view). The robot "
                             + str(item).lower()
                         )
-                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.GR1_UNIFIED.value]:
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.GR1_UNIFIED.value):
                         item = "A single view video shows that a human " + str(item).lower() 
-                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.MECKA_HANDS.value]:
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.MECKA_HANDS.value):
                         item = "A single view video shows that a human " + str(item).lower()
-                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.XDOF.value]:
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.XDOF.value):
                         item = "A multi-view video shows that a robot " + str(item).lower() + " The video is split into four views: The top-left view shows the camera view from the robot's head, the top-right view shows the camera view from the right hand, the bottom-left view shows the camera view from the left hand, and the bottom-right view is a black screen (inactive view). The robot " + str(item).lower()
-                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.YAM.value]:
-                        item = "A multi-view video shows that a robot " + str(item).lower() + " The video is split into four views: The top-left view shows the top camera, the top-right view shows the right camera, the bottom-left view shows the left camera, and the bottom-right view is a black screen. The robot " + str(item).lower()
-                    elif elem["embodiment_id"] == embodiment_tag_mapping[EmbodimentTag.UNITREE_G1_UPPER_BODY_DEX3.value]:
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.YAM.value):
+                        item = "A multi-view video shows that a robot " + str(item).lower() + " The video is split into four views: The top-left view shows the camera view from the robot's head, the top-right view shows the camera view from the right hand, the bottom-left view shows the camera view from the left hand, and the bottom-right view is a black screen. The robot " + str(item).lower()
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.G1_SONIC.value):
+                        item = "A single view video shows that a robot " + str(item).lower()
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.G1_SONIC_Neck.value):
+                        item = "A single view video shows that a robot " + str(item).lower()
+                    elif elem["embodiment_id"] == embodiment_tag_mapping.get(EmbodimentTag.UNITREE_G1_UPPER_BODY_DEX3.value):
                         item = "A multi-view video shows that a robot " + str(item).lower() + " The video is split into four views: The top-left view shows the camera view from the robot's head, the top-right view shows the camera view from the right hand, the bottom-left view shows the camera view from the left hand, and the bottom-right view is a black screen (inactive view). The robot " + str(item).lower()
                     else:
                         raise ValueError(f"Embodiment ID {elem['embodiment_id']} not supported.")   
