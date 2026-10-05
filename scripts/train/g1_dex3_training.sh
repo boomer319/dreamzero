@@ -1,16 +1,33 @@
 #!/bin/bash
-# DreamZero G1 Dex3 Training Script
-
+# DreamZero G1 Dex3 Training Script (default: G1_Dex3_AllMerged_GEAR)
+#
+# Views: 3 views (cam_left_high / cam_left_wrist / cam_right_wrist) at 320x176
+# (full-bleed) -> 2x2 quadrant grid 640x352, 880 tokens per latent frame
+# (frame_seqlen=880). num_frames=9, action_horizon=48, num_frame_per_block=2,
+# num_action_per_block=48 (matches the DreamZero-AgiBot base geometry).
+#
+# Launch:  cd dreamzero_docker_env && ./run.sh training
+#
+# Env overrides (optional):
+#   G1_DEX3_DATA_ROOT              dataset root (default /datasets/G1_Dex3_AllMerged_GEAR/)
+#   OUTPUT_DIR                     checkpoint dir (default ./checkpoints/${RUN_NAME:-dreamzero_g1_dex3_allmerged})
+#   NUM_GPUS                       processes (default 7)
+#   MAX_STEPS                      stop after N steps (default 500; use 3 for a smoke test)
+#   SAVE_STEPS                     checkpoint interval (default 500)
+#   LEARNING_RATE                  (default 1e-5)
+#   DATASET_SHARD_SAMPLING_RATE    (default 0.1)
+#   RESUME_FROM_CHECKPOINT         checkpoint dir to resume from (default: empty = fresh run)
+#   WAN_CKPT_DIR / TOKENIZER_DIR
 export HYDRA_FULL_ERROR=1
 
 # ============ CHANGE THESE VARIABLES ============
-G1_DEX3_DATA_ROOT=${G1_DEX3_DATA_ROOT:-"./data/G1_Dex3_ObjectPlacement_Dataset"}
-OUTPUT_DIR=${OUTPUT_DIR:-"./checkpoints/dreamzero_g1_dex3_lora_5k"}
+G1_DEX3_DATA_ROOT=${G1_DEX3_DATA_ROOT:-"/datasets/G1_Dex3_AllMerged_GEAR/"}
+OUTPUT_DIR=${OUTPUT_DIR:-"./checkpoints/${RUN_NAME:-dreamzero_g1_dex3_allmerged}"}
 
 if [ -z "${NUM_GPUS}" ]; then
     NUM_GPUS=$(nvidia-smi -L 2>/dev/null | wc -l)
 fi
-NUM_GPUS=${NUM_GPUS:-8}
+NUM_GPUS=${NUM_GPUS:-7}
 
 WAN_CKPT_DIR=${WAN_CKPT_DIR:-"./checkpoints/Wan2.1-I2V-14B-480P"}
 TOKENIZER_DIR=${TOKENIZER_DIR:-"./checkpoints/umt5-xxl"}
@@ -33,6 +50,10 @@ if [ ! -d "$G1_DEX3_DATA_ROOT" ]; then
     echo "Set G1_DEX3_DATA_ROOT to your converted DreamZero/GEAR dataset root"
     exit 1
 fi
+
+echo "G1_DEX3_DATA_ROOT=$G1_DEX3_DATA_ROOT"
+echo "OUTPUT_DIR=$OUTPUT_DIR"
+echo "NUM_GPUS=$NUM_GPUS MAX_STEPS=$MAX_STEPS SAVE_STEPS=$SAVE_STEPS"
 
 torchrun --nproc_per_node $NUM_GPUS --standalone groot/vla/experiment/experiment.py \
     report_to=wandb \
@@ -57,6 +78,7 @@ torchrun --nproc_per_node $NUM_GPUS --standalone groot/vla/experiment/experiment
     output_dir=$OUTPUT_DIR \
     per_device_train_batch_size=1 \
     max_steps=${MAX_STEPS:-500} \
+    +resume_from_checkpoint=${RESUME_FROM_CHECKPOINT:-} \
     weight_decay=1e-5 \
     save_total_limit=10 \
     upload_checkpoints=false \
